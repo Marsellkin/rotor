@@ -1864,7 +1864,8 @@ function returnUrl($url = null)
  * @param  array  $params массив параметров
  * @return string         сформированный код
  */
-function view($view, array $params = [])
+
+function blade()
 {
     $blade = new Blade([
         HOME . '/themes/' . setting('themes') . '/views',
@@ -1874,7 +1875,12 @@ function view($view, array $params = [])
 
     $blade->compiler()->withoutDoubleEncoding();
 
-    return $blade->render($view, $params);
+    return $blade;
+}
+
+function view($view, array $params = [])
+{
+    return blade()->render($view, $params);
 }
 
 /**
