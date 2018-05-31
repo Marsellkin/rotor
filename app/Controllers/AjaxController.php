@@ -26,12 +26,12 @@ class AjaxController extends BaseController
     {
         parent::__construct();
 
-        if (! Request::ajax()) {
+/*        if (! Request::ajax()) {
             exit(json_encode([
                 'status' => 'error',
                 'message' => 'This is not ajax request'
             ]));
-        }
+        }*/
     }
 
     /**
@@ -264,6 +264,21 @@ class AjaxController extends BaseController
             'status' => 'success',
             'cancel' => $cancel,
             'rating' => formatNum($post['rating'])
+        ]);
+    }
+
+
+    /**
+     * Изменение рейтинга
+     */
+    public function upload()
+    {
+
+        echo json_encode([
+            'status' => 'success',
+            'src' => '/uploads/images/ddd',
+            'width' => 44,
+            'height' => 55,
         ]);
     }
 }

@@ -1,3 +1,64 @@
+
+var InlineUpload = {
+    dialog: null,
+    options: {
+        form_class: 'inline_upload_form', // class формы
+        action: '/ajax/upload', // урл на который будет отправлен POST c загруженым файлом
+        iframe: 'inline_upload_iframe' // имя iframe
+    },
+    display: function() { // метод, который принимает на себя клик по кнопке в markItUp
+        var self = this;
+
+        this.dialog = $(document).find(".inline_upload_container");
+
+        if (!this.dialog.length) { // нашего скрытого div нету DOM'a, создаем
+            // создаем форму с iframe внутри невидимого div и прикрепляем его к body
+            this.dialog = $([
+                '<div style="opacity:0;position:absolute;" class="inline_upload_container"><form class="',this.options.form_class,'" action="',this.options.action,'" target="',this.options.iframe,'" method="post" enctype="multipart/form-data">',
+                '<input name="form[inlineUploadFile]" type="file" /></form>' +
+                '<iframe id="',this.options.iframe,'" name="',this.options.iframe,'" class="',this.options.iframe,'" src="about:blank" width="0" height="0"></iframe></div>',
+            ].join(''));
+            this.dialog.appendTo(document.body);
+        }
+
+        // делаем клик по input[type=file] в скрытом div'e
+        // чтобы показать системный диалог выборки файла
+        $("input[name='form[inlineUploadFile]']").focus(); // хак для хрома и прочих
+        $("input[name='form[inlineUploadFile]']").trigger('click');
+
+        // после того, как файл был выбран, отправляем нашу скрытую форму на сервер
+        $("input[name='form[inlineUploadFile]']").on('change', function(){
+            if ($(this).val() != '') { // если файл небыл выбран, ничего страшного не произойдет
+                $('.' + self.options.form_class).submit();
+            }
+        });
+
+        // ответ будет отдан в скрытый iframe
+        $('.' + this.options.iframe).bind('load', function() {
+            var responseJSONStr = $(this).contents().find('body').html();
+
+            console.log(responseJSONStr);
+
+            if (responseJSONStr != '') { // сервер вернул нам ответ, будем его парсить
+                var response = $.parseJSON(responseJSONStr);
+                if (response.status == 'success') { // если все хорошо
+                    var block = ['<img src="' + response.src + '" width="' + response.width + '" height="' + response.height + '" alt="" class=""/>'];
+                    $.markItUp({replaceWith: block.join('')} ); // добавляем тег img в текст
+                } else {
+                    alert(response.msg); // сообщение об ошибке
+                }
+                self.cleanUp(); // cleanUp() убирает скрытый div с формой и iframe из DOM
+            }
+        });
+    },
+    cleanUp: function() {
+        $("input[name='form[inlineUploadFile]']").off('change');
+        this.dialog.remove();
+    }
+};
+
+
+
 // ----------------------------------------------------------------------------
 // markItUp bb-code setting!
 // ----------------------------------------------------------------------------
@@ -14,6 +75,11 @@ mySettings = {
         {title:'Ссылка', name:'<i class="fa fa-link"></i>', className:"bb-link", key:'L', openWith:'[url=[![Ссылка:!:http://]!]]', closeWith:'[/url]', placeHolder:'Текст ссылки...'},
 
         {title:'Изображение', name:'<i class="fa fa-image"></i>', className:"bb-image", openWith:'[img][![URL изображения:!:http://]!]', closeWith:'[/img]'},
+
+
+        {
+            name:'PictureUpload', key:'P', beforeInsert: function(markItUp) { InlineUpload.display(markItUp) }
+        },
 
         {title:'Видео', name:'<i class="fab fa-youtube"></i>', className:"bb-youtube", openWith:'[youtube][![Ссылка на видео с youtube]!]', closeWith:'[/youtube]'},
         {title:'Цвет', name:'<i class="fa fa-th"></i>', className:"bb-color", openWith:'[color=[![Код цвета]!]]', closeWith:'[/color]',
