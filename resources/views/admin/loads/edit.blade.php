@@ -28,7 +28,7 @@
                 <?php $inputParent = getInput('parent', $load->parent_id); ?>
 
                 <select class="form-control" id="parent" name="parent">
-                    <option value="0">Основной форум</option>
+                    <option value="0">Основной раздел</option>
 
                     @foreach ($loads as $data)
 
